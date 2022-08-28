@@ -3,3 +3,9 @@
 __pycache__/
 *.py[cod]
 *$py.class
+
+# macOS drops these files all over
+.DS_Store
+
+# I use intellij IDEA
+.idea

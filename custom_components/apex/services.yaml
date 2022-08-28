@@ -23,11 +23,11 @@ set_variable:
       name: DID
       description: "DID of the selected variable or output to modify"
       example: "Cntl_A1"
-      selector: 
+      selector:
         text:
-    code:
-      name: Code
-      description: "Code to modify on the variable/output"
-      example: "Set 75"
+    value:
+      name: Value
+      description: "Value to set on the variable/output"
+      example: "75"
       selector:
         text:

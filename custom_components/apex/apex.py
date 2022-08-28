@@ -1,20 +1,16 @@
-import json
 import logging
 import requests
 import time
-import xmltodict
+from .const import *
 
-
-defaultHeaders = {
-    "Accept": "*/*",
-    "Content-Type": "application/json"
-}
+DEFAULT_HEADERS = {"Accept": "*/*", "Content-Type": "application/json"}
 
 _LOGGER = logging.getLogger(__name__)
 
+
 class Apex(object):
     def __init__(
-        self, username, password, deviceip
+            self, username, password, deviceip
     ):
 
         self.username = username
@@ -23,31 +19,21 @@ class Apex(object):
         self.sid = None
         self.version = "new"
 
-
-
     def auth(self):
-        headers = {
-            **defaultHeaders
-        }
         data = {
-            "login" : self.username, 
-            "password": self.password, 
-            "remember_me" : False
+            "login": self.username,
+            "password": self.password,
+            "remember_me": False
         }
         # Try logging in 3 times due to controller timeout
         login = 0
         while login < 3:
-            r = requests.post(
-                "http://" + self.deviceip + "/rest/login",
-                headers = headers,
-                json = data
-            )
-
+            r = requests.post("http://" + self.deviceip + "/rest/login", headers=DEFAULT_HEADERS, json=data)
 
             _LOGGER.debug(r.text)
             _LOGGER.debug(r.status_code)
-        # _LOGGER.debug(r.text)
-        # _LOGGER.debug(r.request.body)
+            # _LOGGER.debug(r.text)
+            # _LOGGER.debug(r.request.body)
 
             if r.status_code == 200:
                 result = r.json()
@@ -61,74 +47,17 @@ class Apex(object):
                 login += 1
         return False
 
-    def oldstatus(self):
-        # Function for returning information on old controllers (Currently not authenticated)
-        headers = {
-            **defaultHeaders
-        }
-
-        r = requests.get(
-            "http://" + self.deviceip + "/cgi-bin/status.xml?" + str(round(time.time())),
-            headers = headers
-        )
-        xml = xmltodict.parse(r.text)
-        # Code to convert old style to new style json
-        result = {}
-        system = {}
-        system["software"] = xml["status"]["@software"]
-        system["hardware"] = xml["status"]["@hardware"] + " Legacy Version (Status.xml)"
-
-        result["system"] = system
-
-        inputs = []
-        for value in xml["status"]["probes"]["probe"]:
-            inputdata = {}
-            inputdata["did"] = "base_" + value["name"]
-            inputdata["name"] = value["name"]
-            inputdata["type"] = value["type"]
-            inputdata["value"] = value["value"]
-            inputs.append(inputdata)
-
-        result["inputs"] = inputs
-
-        outputs = []
-        for value in xml["status"]["outlets"]["outlet"]:
-            _LOGGER.debug(value)
-            outputdata = {}
-            outputdata["did"] = value["deviceID"]
-            outputdata["name"] = value["name"]
-            outputdata["status"] = [value["state"], "", "OK", ""]
-            outputdata["id"] = value["outputID"]
-            outputdata["type"] = "outlet"
-            outputs.append(outputdata)
-
-        
-        result["outputs"] = outputs
-
-        _LOGGER.debug(result)
-        return result
-
-
     def status(self):
         _LOGGER.debug(self.sid)
         if self.sid is None:
             _LOGGER.debug("We are none")
             self.auth()
 
-        if self.version == "old":
-            result = self.oldstatus()
-            return result
         i = 0
         while i <= 3:
-            headers = {
-                **defaultHeaders,
-                "Cookie" : "connect.sid=" + self.sid
-            }
-            r = requests.get(
-                "http://" + self.deviceip + "/rest/status?_=" + str(round(time.time())),
-                headers = headers
-            )
-            #_LOGGER.debug(r.text)
+            headers = {**DEFAULT_HEADERS, f"Cookie": "connect.sid={self.sid}"}
+            r = requests.get("http://" + self.deviceip + "/rest/status?_=" + str(round(time.time())), headers=headers)
+            # _LOGGER.debug(r.text)
 
             if r.status_code == 200:
                 result = r.json()
@@ -136,28 +65,21 @@ class Apex(object):
             elif r.status_code == 401:
                 self.auth()
             else:
-                _LOGGER.debug("Unknown error occurred")
+                _LOGGER.debug(f"Unknown error occurred {r.status_code}, {r.reason}")
                 return {}
             i += 1
 
     def config(self):
-
-        if self.version == "old":
-            result = {}
-            return result
         if self.sid is None:
             _LOGGER.debug("We are none")
             self.auth()
         headers = {
-            **defaultHeaders,
-            "Cookie" : "connect.sid=" + self.sid
+            **DEFAULT_HEADERS,
+            "Cookie": "connect.sid=" + self.sid
         }
 
-        r = requests.get(
-            "http://" + self.deviceip + "/rest/config?_=" + str(round(time.time())),
-            headers = headers
-        )
-        #_LOGGER.debug(r.text)
+        r = requests.get("http://" + self.deviceip + "/rest/config?_=" + str(round(time.time())), headers=headers)
+        # _LOGGER.debug(r.text)
 
         if r.status_code == 200:
             result = r.json()
@@ -166,69 +88,44 @@ class Apex(object):
             print("Error occured")
 
     def toggle_output(self, did, state):
-        headers = {
-            **defaultHeaders,
-            "Cookie" : "connect.sid=" + self.sid
-        }
-
-
-        data = {
-            "did" : did, 
-            "status": [
-                state, 
-                "", 
-                "OK", 
-                ""
-            ],
-            "type": "outlet"
-
-        }
-
+        headers = {**DEFAULT_HEADERS, f"Cookie": "connect.sid={self.sid}"}
+        data = {DID: did, STATUS: [state, "", "OK", ""], TYPE: "outlet"}
 
         _LOGGER.debug(data)
 
-        r = requests.put(
-            "http://" + self.deviceip + "/rest/status/outputs/" + did, 
-            headers = headers,
-            json = data
-        )
-        
+        r = requests.put(f"http://{self.deviceip}/rest/status/outputs/{did}", headers=headers, json=data)
+
         data = r.json()
         _LOGGER.debug(data)
         return data
 
-
-    def set_variable(self, did, code):
-        headers = {
-            **defaultHeaders,
-            "Cookie" : "connect.sid=" + self.sid
-        }
+    def set_variable(self, did, set_value):
+        headers = {**DEFAULT_HEADERS, f"Cookie": "connect.sid={self.sid}"}
         config = self.config()
         variable = None
-        for value in config["oconf"]:
-            if value["did"] == did:
-                variable = value
-        
-        if variable == None:
-            return {"error": "Variable/did not found"}
 
+        """ find the variable in the output configuration"""
+        for output in config[OUTPUT_CONFIG]:
+            if output[DID] == did:
+                variable = output
 
-        if variable["ctype"] != "Advanced":
-            _LOGGER.debug("Only Advanced mode currently supported")
-            return {"error": "Given variable was not of type Advanced"}
+        if variable is None:
+            return {"error": "Variable 'did' not found"}
 
-        variable["prog"] = code
+        """
+        'ctype' is the Apex template for the program they embed. 'Advanced' is a bare program. if we
+        are setting a variable, we want to take control of that value, so the Apex templates are not
+        useful. it's useful to issue a warning if we are changing that type, but not necessary to
+        retain it.
+        """
+        if variable[CTYPE] != ADVANCED:
+            _LOGGER.warning(f"Changing variable '{did}' {CTYPE} to '{ADVANCED}' from '{variable[CTYPE]}' with prog='{variable[PROG]}'")
+            variable[CTYPE] = ADVANCED
 
-        r = requests.put(
-            "http://" + self.deviceip + "/rest/config/oconf/" + did, 
-            headers = headers,
-            json = variable
-        )
+        variable[PROG] = f"Set {set_value}"
         _LOGGER.debug(variable)
 
+        r = requests.put(f"http://{self.deviceip}/rest/config/oconf/{did}", headers=headers, json=variable)
         _LOGGER.debug(r.text)
 
         return {"error": ""}
-
-
-
