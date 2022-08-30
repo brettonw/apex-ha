@@ -43,10 +43,11 @@ SWITCHES = {
 
 SENSORS = {
     "Temp": {ICON: "mdi:water-thermometer", MEASUREMENT: "°C"},
-    "Cond": {ICON: "mdi:shaker-outline"},
+    "Cond": {ICON: "mdi:shaker-outline", MEASUREMENT: "ppt"},
     "pH": {ICON: "mdi:test-tube"},
     "ORP": {ICON: "mdi:test-tube"},
     "digital": {ICON: "mdi:digital-ocean"},
+    "in": {ICON: "mdi:digital-ocean", MEASUREMENT: "in"},
     "Amps": {ICON: "mdi:lightning-bolt-circle", MEASUREMENT: "A"},
     "pwr": {ICON: "mdi:power-plug", MEASUREMENT: "W"},
     "volts": {ICON: "mdi:flash-triangle", MEASUREMENT: "V"},
