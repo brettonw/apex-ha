@@ -77,11 +77,14 @@ def set_output(hass, service, coordinator):
 
 
 def set_variable(hass, service, coordinator):
-    did = service.data.get(DID).strip()
-    value = int(service.data.get("value").strip())
-    status = coordinator.apex.set_variable(did, value)
-    if status["error"] != "":
-        raise HomeAssistantError(status["error"])
+    did = service.data.get(DID)
+    if did is not None:
+        did = did.strip()
+        value = int(service.data.get("value").strip()) if service.data.get("value") is not None else None
+        code = service.data.get("code")
+        status = coordinator.apex.set_variable(did, value, code)
+        if status["error"] != "":
+            raise HomeAssistantError(status["error"])
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
@@ -144,9 +147,7 @@ class ApexDataUpdateCoordinator(DataUpdateCoordinator):
 class ApexEntity(CoordinatorEntity):
     """Defines a base Apex entity."""
 
-    def __init__(
-            self, *, device_id: str, name: str, coordinator: ApexDataUpdateCoordinator
-    ):
+    def __init__(self, *, device_id: str, name: str, coordinator: ApexDataUpdateCoordinator):
         """Initialize the entity."""
         super().__init__(coordinator)
         self._device_id = device_id

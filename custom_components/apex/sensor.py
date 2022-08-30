@@ -18,22 +18,23 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
         sensor = ApexSensor(entry, value, config_entry.options)
         async_add_entities([sensor], True)
     for value in entry.data[OUTPUTS]:
-        if (value[TYPE] == "dos") or (value[TYPE] == VARIABLE) or (value[TYPE] == VIRTUAL) or (value[TYPE] == IOTA_PUMP):
+        if ApexEntityType.is_variable_type(value[TYPE]):
             sensor = ApexSensor(entry, value, config_entry.options)
             async_add_entities([sensor], True)
 
 
-class ApexSensor(
-    ApexEntity,
-    Entity,
-):
+# why not SensorEntity? well... unit of measurement comes from the Apex settings dynamically, that's why (?)
+class ApexSensor(ApexEntity, Entity):
     def __init__(self, coordinator, sensor, options):
         self.sensor = sensor
         self.options = options
         self._attr = {}
         self.coordinator = coordinator
-        self._device_id = "apex_" + sensor["name"]
+        self._device_id = "apex_" + sensor[DID]
         self._attr_state_class = SensorStateClass.MEASUREMENT
+        self._attr_has_entity_name = True
+        self._attr_name = sensor[DID] + sensor["name"]
+
         # Required for HA 2022.7
         self.coordinator_context = object()
 
@@ -45,18 +46,17 @@ class ApexSensor(
                     return value["value"]
             for value in self.coordinator.data[OUTPUTS]:
                 if value[DID] == self.sensor[DID]:
-                    if self.sensor[TYPE] == "dos":
+                    if self.sensor[TYPE] == ApexEntityType.DOS:
                         return value[STATUS][4]
-                    if self.sensor[TYPE] == IOTA_PUMP:
+                    if self.sensor[TYPE] == ApexEntityType.IOTA_PUMP:
                         return value[STATUS][1]
-                    if (self.sensor[TYPE] == VIRTUAL) or (self.sensor[TYPE] == VARIABLE):
-                        if CONFIG in self.coordinator.data:
-                            for config in self.coordinator.data[CONFIG][OUTPUT_CONFIG]:
-                                if config[DID] == self.sensor[DID]:
-                                    if config[CTYPE] == ADVANCED:
-                                        return self.process_prog(config[PROG])
-                                    else:
-                                        return "Not an Advanced variable!"
+                    if ApexEntityType.is_variable_type(self.sensor[TYPE]) and (CONFIG in self.coordinator.data):
+                        for config in self.coordinator.data[CONFIG][OUTPUT_CONFIG]:
+                            if config[DID] == self.sensor[DID]:
+                                if config[CTYPE] == ADVANCED:
+                                    return self.process_prog(config[PROG])
+                                else:
+                                    return "Not an Advanced variable!"
 
         if ftype == "attributes":
             for value in self.coordinator.data[INPUTS]:
@@ -64,11 +64,11 @@ class ApexSensor(
                     return value
             for value in self.coordinator.data[OUTPUTS]:
                 if value[DID] == self.sensor[DID]:
-                    if self.sensor[TYPE] == "dos":
+                    if self.sensor[TYPE] == ApexEntityType.DOS:
                         return value
-                    if self.sensor[TYPE] == IOTA_PUMP:
+                    if self.sensor[TYPE] == ApexEntityType.IOTA_PUMP:
                         return value
-                    if (self.sensor[TYPE] == VIRTUAL) or (self.sensor[TYPE] == VARIABLE):
+                    if ApexEntityType.is_variable_type(self.sensor[TYPE]):
                         if CONFIG in self.coordinator.data:
                             for config in self.coordinator.data[CONFIG][OUTPUT_CONFIG]:
                                 if config[DID] == self.sensor[DID]:
@@ -76,7 +76,8 @@ class ApexSensor(
                         else:
                             return value
 
-    def process_prog(self, prog):
+    @classmethod
+    def process_prog(cls, prog):
         if "Set PF" in prog:
             return prog
         test = re.findall("Set\s[^\d]*(\d+)", prog)
@@ -87,16 +88,8 @@ class ApexSensor(
             return prog
 
     @property
-    def name(self):
-        return "apex_" + self.sensor["name"]
-
-    @property
     def state(self):
         return self.get_value("state")
-
-    @property
-    def device_id(self):
-        return self.device_id
 
     @property
     def extra_state_attributes(self):

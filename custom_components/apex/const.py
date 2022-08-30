@@ -10,9 +10,6 @@ CONFIG = "config"
 INPUTS = "inputs"
 OUTPUTS = "outputs"
 TYPE = "type"
-VARIABLE = "variable"
-VIRTUAL = "virtual"
-IOTA_PUMP = "iotaPump|Sicce|Syncra"
 EXTRA = "extra"
 RANGE = "range"
 MEASUREMENT = "measurement"
@@ -20,20 +17,27 @@ INPUT_CONFIG = "iconf"
 OUTPUT_CONFIG = "oconf"
 ICON = "icon"
 STATUS = "status"
-ON = "ON"
-OFF = "OFF"
-AUTO_ON = "AON"
-AUTO_OFF = "AOF"
+
+class ApexEntityType:
+    OUTLET = "outlet"
+    VARIABLE = "variable"
+    VIRTUAL = "virtual"
+    IOTA_PUMP = "iotaPump|Sicce|Syncra"
+    DOS = "dos"
+
+    @staticmethod
+    def is_variable_type(type: str) -> bool:
+        return (type == ApexEntityType.VARIABLE) or (type == ApexEntityType.VIRTUAL) or (type == ApexEntityType.DOS) or (type == ApexEntityType.IOTA_PUMP)
 
 SWITCHES = {
-    "outlet": {ICON: "mdi:power-socket-au"},
+    ApexEntityType.OUTLET: {ICON: "mdi:power-socket-au"},
     "alert": {ICON: "mdi:alert"},
-    VARIABLE: {ICON: "mdi:cog"},
+    ApexEntityType.VARIABLE: {ICON: "mdi:cog"},
     "afs": {ICON: "mdi:shaker"},
     "24v": {ICON: "mdi:home-lightning-bolt-outline"},
-    "dos": {ICON: "mdi:test-tube"},
-    VIRTUAL: {ICON: "mdi:monitor-account"},
-    IOTA_PUMP: {ICON: "mdi:pump"}
+    ApexEntityType.DOS: {ICON: "mdi:test-tube"},
+    ApexEntityType.VIRTUAL: {ICON: "mdi:monitor-account"},
+    ApexEntityType.IOTA_PUMP: {ICON: "mdi:pump"}
 }
 
 SENSORS = {
@@ -48,10 +52,10 @@ SENSORS = {
     "alk": {ICON: "mdi:test-tube", MEASUREMENT: "dKh"},
     "ca": {ICON: "mdi:test-tube", MEASUREMENT: "ppm"},
     "mg": {ICON: "mdi:test-tube", MEASUREMENT: "ppm"},
-    "dos": {ICON: "mdi:pump", MEASUREMENT: "ml"},
-    IOTA_PUMP: {ICON: "mdi:pump", MEASUREMENT: "%"},
-    VARIABLE: {ICON: "mdi:cog-outline"},
-    VIRTUAL: {ICON: "mdi:cog-outline"},
+    ApexEntityType.DOS: {ICON: "mdi:pump", MEASUREMENT: "ml"},
+    ApexEntityType.IOTA_PUMP: {ICON: "mdi:pump", MEASUREMENT: "%"},
+    ApexEntityType.VARIABLE: {ICON: "mdi:cog-outline"},
+    ApexEntityType.VIRTUAL: {ICON: "mdi:cog-outline"},
 }
 
 MEASUREMENTS = {

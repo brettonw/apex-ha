@@ -1,4 +1,5 @@
 import logging
+from typing import Any
 
 from homeassistant.components.switch import SwitchEntity
 
@@ -17,10 +18,27 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
         async_add_entities([sw], False)
 
 
+class ApexSwitchState:
+    ON = "ON"
+    OFF = "OFF"
+    AUTO_ON = "AON"
+    AUTO_OFF = "AOF"
+
+    @staticmethod
+    def is_on(state):
+        return (state == ApexSwitchState.ON) or (state == ApexSwitchState.AUTO_ON)
+
+    @staticmethod
+    def is_off(state):
+        return (state == ApexSwitchState.OFF) or (state == ApexSwitchState.AUTO_OFF)
+
+
 class Switch(ApexEntity, SwitchEntity):
     def __init__(self, coordinator, switch, options):
 
         self._device_id = "apex_" + switch[DID]
+        self._attr_has_entity_name = True
+        self._attr_name = switch[DID] + switch["name"]
         self.switch = switch
         self.coordinator = coordinator
         self._state = None
@@ -31,9 +49,9 @@ class Switch(ApexEntity, SwitchEntity):
         update = await self.coordinator.hass.async_add_executor_job(
             self.coordinator.apex.toggle_output,
             self.switch[DID],
-            ON
+            ApexSwitchState.ON
         )
-        if (update[STATUS][0] == ON) or (update[STATUS][0] == AUTO_ON):
+        if ApexSwitchState.is_on(update[STATUS][0]):
             self._state = True
             self.switch[STATUS] = update[STATUS]
             _LOGGER.debug("Writing state ON")
@@ -43,21 +61,13 @@ class Switch(ApexEntity, SwitchEntity):
         update = await self.coordinator.hass.async_add_executor_job(
             self.coordinator.apex.toggle_output,
             self.switch[DID],
-            OFF
+            ApexSwitchState.OFF
         )
-        if (update[STATUS][0] == OFF) or (update[STATUS][0] == AUTO_OFF):
+        if ApexSwitchState.is_off(update[STATUS][0]):
             self._state = False
             self.switch[STATUS] = update[STATUS]
             _LOGGER.debug("Writing state OFF")
             self.async_write_ha_state()
-
-    @property
-    def name(self):
-        return "apex_" + self.switch["name"]
-
-    @property
-    def device_id(self):
-        return self.device_id
 
     @property
     def is_on(self):
@@ -69,10 +79,7 @@ class Switch(ApexEntity, SwitchEntity):
             return False
         for value in self.coordinator.data[OUTPUTS]:
             if value[DID] == self.switch[DID]:
-                if value[STATUS][0] == ON or value[STATUS][0] == AUTO_ON:
-                    return True
-                else:
-                    return False
+                return ApexSwitchState.is_on(value[STATUS][0])
 
     @property
     def icon(self):
@@ -85,3 +92,10 @@ class Switch(ApexEntity, SwitchEntity):
     @property
     def extra_state_attributes(self):
         return self.switch
+
+    def turn_on(self, **kwargs: Any) -> None:
+        pass
+
+    def turn_off(self, **kwargs: Any) -> None:
+        pass
+

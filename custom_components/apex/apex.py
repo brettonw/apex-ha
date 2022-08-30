@@ -2,6 +2,7 @@ import logging
 import requests
 import time
 from .const import *
+from typing import Optional
 
 DEFAULT_HEADERS = {"Accept": "*/*", "Content-Type": "application/json"}
 
@@ -89,28 +90,32 @@ class Apex(object):
 
     def toggle_output(self, did, state):
         headers = {**DEFAULT_HEADERS, f"Cookie": "connect.sid={self.sid}"}
-        data = {DID: did, STATUS: [state, "", "OK", ""], TYPE: "outlet"}
 
+        """
+        XXX giving the TYPE: OUTLET a bit of side-eye, as it should be the type of the output
+        entity, but this seems to work without having to find the output type in the status.
+        """
+        data = {DID: did, STATUS: [state, "", "OK", ""], TYPE: ApexEntityType.OUTLET}
         _LOGGER.debug(data)
 
         r = requests.put(f"http://{self.deviceip}/rest/status/outputs/{did}", headers=headers, json=data)
-
         data = r.json()
         _LOGGER.debug(data)
+
         return data
 
-    def set_variable(self, did, set_value):
+    def set_variable(self, did, set_value: Optional[int], set_code: Optional[str]) -> dict:
         headers = {**DEFAULT_HEADERS, f"Cookie": "connect.sid={self.sid}"}
-        config = self.config()
-        variable = None
 
-        """ find the variable in the output configuration"""
+        config = self.config()
+
+        # find the variable in the output configuration
+        variable = None
         for output in config[OUTPUT_CONFIG]:
             if output[DID] == did:
                 variable = output
-
         if variable is None:
-            return {"error": "Variable 'did' not found"}
+            return {"error": f"Variable '{did}' not found"}
 
         """
         'ctype' is the Apex template for the program they embed. 'Advanced' is a bare program. if we
@@ -122,10 +127,19 @@ class Apex(object):
             _LOGGER.warning(f"Changing variable '{did}' {CTYPE} to '{ADVANCED}' from '{variable[CTYPE]}' with prog='{variable[PROG]}'")
             variable[CTYPE] = ADVANCED
 
-        variable[PROG] = f"Set {set_value}"
-        _LOGGER.debug(variable)
+        if (set_code is None) and (set_value is None):
+            _LOGGER.warning(f"set_variable '{did}' called with no 'code' or 'value', ignoring")
+        else:
+            # at least one of the two inputs (set_value, set_code) is valid, maybe both.
+            # if set_code is not valid, take the set_value
+            if set_code is None:
+                set_code = f"Set {set_value}\n"
 
-        r = requests.put(f"http://{self.deviceip}/rest/config/oconf/{did}", headers=headers, json=variable)
-        _LOGGER.debug(r.text)
+            # save out the program
+            variable[PROG] = set_code
+            _LOGGER.debug(variable)
+
+            r = requests.put(f"http://{self.deviceip}/rest/config/oconf/{did}", headers=headers, json=variable)
+            _LOGGER.debug(r.text)
 
         return {"error": ""}

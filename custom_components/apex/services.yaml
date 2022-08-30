@@ -17,7 +17,7 @@ set_output:
             - "ON"
             - "AUTO"
 set_variable:
-  description: "Ability to program variables on the controller e.g. Set 75 (Only Advanced mode variables supported currently!!"
+  description: "Ability to program variables on the controller with either a value or code. Either 'Code' or 'Value' must be specified. 'Code' will override any 'Value' if it is specified. This service will set 'Advanced' mode on the requested variable, and the variable will need to be switched to 'AUTO' using the 'apex.set_output' service call."
   fields:
     did:
       name: DID
@@ -27,7 +27,13 @@ set_variable:
         text:
     value:
       name: Value
-      description: "Value to set on the variable/output"
+      description: "(OPTIONAL) Value to set on the variable. This will create a program of the form 'Set (value)'"
       example: "75"
+      selector:
+        text:
+    code:
+      name: Code
+      description: "(OPTIONAL) Code to modify on the variable/output. If Code is not specified, "
+      example: "Set 75"
       selector:
         text:
