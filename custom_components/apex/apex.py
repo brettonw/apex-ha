@@ -10,10 +10,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class Apex(object):
-    def __init__(
-            self, username, password, deviceip
-    ):
-
+    def __init__(self, username, password, deviceip):
         self.username = username
         self.password = password
         self.deviceip = deviceip
@@ -26,8 +23,7 @@ class Apex(object):
         # Try logging in 3 times due to controller timeout
         login = 0
         while login < 3:
-            r = requests.post("http://" + self.deviceip + "/rest/login", headers=DEFAULT_HEADERS, json=data)
-
+            r = requests.post(f"http://{self.deviceip}/rest/login", headers=DEFAULT_HEADERS, json=data)
             _LOGGER.debug(r.text)
             _LOGGER.debug(r.status_code)
             # _LOGGER.debug(r.text)
@@ -40,7 +36,9 @@ class Apex(object):
             if r.status_code == 404:
                 self.version = "old"
                 return True
-            print("Status code failure")
+            print(f"Status code failure")
+            _LOGGER.warning(f"Status code failure {r.status_code}")
+            time.sleep (2)
             login += 1
         return False
 
