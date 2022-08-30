@@ -3,3 +3,9 @@
 __pycache__/
 *.py[cod]
 *$py.class
+
+# Intellij IDEA
+.idea
+
+# MacOS drops these all over the place to save Finder window preferences, they can be safely deleted
+.DS_Store

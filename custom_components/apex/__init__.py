@@ -6,7 +6,6 @@ from datetime import timedelta
 import async_timeout
 import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import callback
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady, HomeAssistantError
@@ -16,13 +15,7 @@ from homeassistant.helpers.update_coordinator import (
     UpdateFailed,
 )
 
-from .const import (
-    DOMAIN,
-    DEVICEIP,
-    MANUFACTURER,
-    UPDATE_INTERVAL,
-    UPDATE_INTERVAL_DEFAULT
-)
+from .const import *
 from .apex import Apex
 
 CONFIG_SCHEMA = vol.Schema({DOMAIN: vol.Schema({})}, extra=vol.ALLOW_EXTRA)
@@ -30,7 +23,6 @@ CONFIG_SCHEMA = vol.Schema({DOMAIN: vol.Schema({})}, extra=vol.ALLOW_EXTRA)
 PLATFORMS = ["sensor", "switch"]
 
 _LOGGER = logging.getLogger(__name__)
-
 
 
 async def async_setup(hass: HomeAssistant, config: dict):
@@ -56,7 +48,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     await coordinator.async_refresh()  # Get initial data
 
-
     if not coordinator.last_update_success:
         raise ConfigEntryNotReady
 
@@ -75,28 +66,27 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     hass.services.async_register(
         DOMAIN,
-        "set_output", 
+        "set_output",
         async_set_options_service
     )
 
     hass.services.async_register(
         DOMAIN,
-        "set_variable", 
+        "set_variable",
         async_set_variable_service
     )
-
-
 
     return True
 
 
 def set_output(hass, service, coordinator):
-    did = service.data.get("did").strip()
+    did = service.data.get(DID).strip()
     setting = service.data.get("setting").strip()
-    status = coordinator.apex.toggle_output(did, setting)
+    coordinator.apex.toggle_output(did, setting)
+
 
 def set_variable(hass, service, coordinator):
-    did = service.data.get("did").strip()
+    did = service.data.get(DID).strip()
     code = service.data.get("code")
     status = coordinator.apex.set_variable(did, code)
     if status["error"] != "":
@@ -144,7 +134,7 @@ class ApexDataUpdateCoordinator(DataUpdateCoordinator):
                     self.apex.status  # Fetch new status
                 )
 
-                data["config"] = await self._hass.async_add_executor_job(
+                data[CONFIG] = await self._hass.async_add_executor_job(
                     self.apex.config  # Fetch new status
                 )
                 #_LOGGER.debug("Refreshing Now")
@@ -163,25 +153,16 @@ class ApexDataUpdateCoordinator(DataUpdateCoordinator):
 class ApexEntity(CoordinatorEntity):
     """Defines a base Apex entity."""
 
-    def __init__(
-        self, *, device_id: str, name: str, coordinator: ApexDataUpdateCoordinator
-    ):
+    def __init__(self, *, device_id: str, name: str, coordinator: ApexDataUpdateCoordinator):
         """Initialize the entity."""
         super().__init__(coordinator)
         self._device_id = device_id
         self._name = name
 
-
     async def async_added_to_hass(self) -> None:
         """When entity is added to hass."""
         await super().async_added_to_hass()
         self._handle_coordinator_update()
-
-    @property
-    def name(self):
-        """Return the name of the entity."""
-        _LOGGER.debug(self._name)
-        return self._name
 
     @property
     def unique_id(self):
@@ -196,11 +177,9 @@ class ApexEntity(CoordinatorEntity):
 
         return {
             "identifiers": {(DOMAIN, self.coordinator.deviceip)},
-            "name": f"Apex Controller ({self.coordinator.deviceip})",
+            NAME: f"Apex Controller ({self.coordinator.deviceip})",
             "hw_version": self.coordinator.data["system"]["hardware"],
             "sw_version": self.coordinator.data["system"]["software"],
             "manufacturer": MANUFACTURER,
             "test": "TEST"
         }
-
-
