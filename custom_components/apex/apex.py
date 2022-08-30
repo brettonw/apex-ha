@@ -39,9 +39,6 @@ class Apex(object):
             if r.status_code == 404:
                 self.version = "old"
                 return True
-            print(f"Status code failure")
-            _LOGGER.warning(f"Status code failure {r.status_code}")
-            time.sleep (2)
             login += 1
         return False
 
