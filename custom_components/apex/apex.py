@@ -18,12 +18,15 @@ class Apex(object):
         self.version = "new"
 
     def auth(self):
+        url = f"http://{self.deviceip}/rest/login"
+        headers = {**DEFAULT_HEADERS}
         data = {"login": self.username, "password": self.password, "remember_me": False}
+        _LOGGER.info(f"url ({url}), headers ({headers}), data ({data})")
 
         # Try logging in 3 times due to controller timeout
         login = 0
         while login < 3:
-            r = requests.post(f"http://{self.deviceip}/rest/login", headers=DEFAULT_HEADERS, json=data)
+            r = requests.post(url, headers=headers, json=data)
             _LOGGER.debug(r.text)
             _LOGGER.debug(r.status_code)
             # _LOGGER.debug(r.text)
@@ -44,7 +47,7 @@ class Apex(object):
 
     def oldstatus(self):
         # Function for returning information on old controllers (Currently not authenticated)
-        r = requests.get(f"http://{self.deviceip}/cgi-bin/status.xml?{str(round(time.time()))}", headers=DEFAULT_HEADERS)
+        r = requests.get(f"http://{self.deviceip}/cgi-bin/status.xml?{str(round(time.time()))}", headers={**DEFAULT_HEADERS})
         xml = xmltodict.parse(r.text)
         # Code to convert old style to new style json
         result = {}
