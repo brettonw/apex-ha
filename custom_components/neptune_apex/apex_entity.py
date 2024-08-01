@@ -2,7 +2,7 @@ import logging
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN, NAME, MANUFACTURER, DID, STATUS, TYPE, SYSTEM
-from .apex_data_update_coordinator import ApexDataUpdateCoordinator
+from .coordinator import ApexDataUpdateCoordinator
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +12,7 @@ class ApexEntity(CoordinatorEntity):
         super().__init__(coordinator)
 
         # we do not pass a name up the tree
-        self._device_id = self._attr_unique_id = f"{coordinator.hostname}_{entity[NAME]}".lower()
+        self._device_id = self._attr_unique_id = f"{coordinator.hostname}_{entity[NAME]}".lower().replace("-", "_")
         self._attr_name = f"{coordinator.hostname.capitalize()} {entity[NAME]}"
         logger.debug(f"{entity_type}.{self._device_id} = (NAME: {entity[NAME]}, DID: {entity[DID]}, TYPE: {entity[TYPE]})")
 
