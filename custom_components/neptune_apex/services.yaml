@@ -3,12 +3,14 @@ set_output:
   description: "Set the value of an output on the controller e.g. setting the lights to AUTO (Automatic) instead of using the switch entity in HA which only supports OFF/ON."
   fields:
     did:
+      required: true
       name: "Device ID"
       description: "Device ID of selected output, can be obtained from attributes of the given switch in HA."
       example: "3_1"
       selector:
         text:
     setting:
+      required: true
       name: "Setting"
       description: "Target setting for the output, one of: ON/OFF/AUTO"
       selector:
@@ -22,12 +24,14 @@ set_variable:
   description: "Ability to program variables on the controller e.g. Set 75 (Only Advanced mode variables supported currently!!"
   fields:
     did:
+      required: true
       name: "DID"
       description: "DID of the selected variable or output to modify"
       example: "Cntl_A1"
       selector:
         text:
     code:
+      required: true
       name: "Code"
       description: "Code to modify on the variable/output"
       example: "Set 75"
@@ -38,18 +42,21 @@ set_dosing_rate:
   description: "Set the dosing rate for a DOS or DQD dosing pump"
   fields:
     did:
+      required: true
       name: "DID"
       description: "DID of the dosing pump"
       example: "4_1"
       selector:
         text:
     profile_id:
+      required: true
       name: "Profile ID"
       description: "Profile ID to assign to the dosing pump, the integration will rename it appropriately."
       example: 11
       selector:
         text:
     rate:
+      required: true
       name: "Rate"
       description: "The desired dosing rate, in mL / min. (effective range is 0 - 125)"
       example: 1.2
@@ -60,6 +67,7 @@ refill_reservoir:
   description: "Refill the reservoir for a DOS or DQD dosing pump"
   fields:
     did:
+      required: true
       name: "DID"
       description: "DID of the DOS or DQD pump"
       example: "4_1"
@@ -67,15 +75,24 @@ refill_reservoir:
         text:
 set_temperature:
   name: "Set Temperature"
-  description: "Set an outlet to be a heater with the given target temperature "
+  description: "Set a thermostat with the given target temperature, using a heater and a chiller"
   fields:
-    did:
-      name: "DID"
+    heater_did:
+      required: true
+      name: "Heater DID"
       description: "DID of the Heater"
       example: "2_7"
       selector:
         text:
+    chiller_did:
+      required: false
+      name: "Chiller DID"
+      description: "DID of the Chiller (if any)"
+      example: "2_8"
+      selector:
+        text:
     temperature:
+      required: true
       name: "Temperature"
       description: "The desired temperature (degrees in Apex configured units)"
       example: 80

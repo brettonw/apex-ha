@@ -2,7 +2,7 @@ import logging
 
 from homeassistant.components.switch import SwitchEntity
 from .apex_entity import ApexEntity
-from .const import DOMAIN, SWITCHES, STATUS, DID, TYPE, OUTPUTS
+from .const import DOMAIN, SWITCHES, STATUS, DID, TYPE, OUTPUTS, ICON
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +56,7 @@ class Switch(ApexEntity, SwitchEntity):
     @property
     def icon(self):
         if self.switch[TYPE] in SWITCHES:
-            return SWITCHES[self.switch[TYPE]]["icon"]
+            return SWITCHES[self.switch[TYPE]][ICON]
         else:
             logger.debug("Missing icon: " + self.switch[TYPE])
             return None

@@ -2,7 +2,7 @@ import logging
 import requests
 import time
 from typing import Optional
-from .const import NAME, STATUS, OUTPUTS, DID, TYPE, OUTLET, CTYPE, ADVANCED, HEATER, PROG, CONFIG, PCONF, OCONF, MCONF
+from .const import NAME, STATUS, OUTPUTS, DID, TYPE, OUTLET, CTYPE, ADVANCED, HEATER, CHILLER, PROG, CONFIG, PCONF, OCONF, MCONF
 
 DEFAULT_HEADERS = {"Accept": "*/*", "Content-Type": "application/json"}
 
@@ -81,7 +81,7 @@ class Apex(object):
         return result
 
     def status(self) -> Optional[dict]:
-        status_data = self.try3(f"status")
+        status_data = self.try3(STATUS)
         if status_data is not None:
             self.status_data = status_data
         return self.status_data
@@ -122,8 +122,11 @@ class Apex(object):
     def set_variable(self, device_id: str, code: str) -> Optional[dict]:
         return self.set_program(device_id, ADVANCED, code, False)
 
-    def set_temperature(self, device_id: str, temperature: float) -> Optional[dict]:
-        return self.set_program(device_id, HEATER, f"Fallback OFF\nIf Tmp < {temperature} Then ON\nIf Tmp > {temperature} Then OFF\n")
+    def set_temperature(self, heater_device_id: str, chiller_device_id: str | None, temperature: float) -> Optional[dict]:
+        result = self.set_program(heater_device_id, HEATER, f"Fallback OFF\nIf Tmp < {temperature} Then ON\nIf Tmp > {temperature} Then OFF\n")
+        if (result is not None) and (chiller_device_id is not None):
+            return self.set_program(chiller_device_id, CHILLER, f"Fallback OFF\nIf Tmp > {temperature} Then ON\nIf Tmp < {temperature} Then OFF\n")
+        return result
 
     def get_module(self, module_number: int, expected_hwtypes: Optional[list[str]] = None) -> Optional[dict]:
         for module in self.config_data[MCONF]:

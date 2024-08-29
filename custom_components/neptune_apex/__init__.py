@@ -7,7 +7,7 @@ from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 
-from .const import DOMAIN, NAME, DEVICEIP, MANUFACTURER, UPDATE_INTERVAL, UPDATE_INTERVAL_DEFAULT, DID, STATUS, CONFIG, TYPE
+from .const import DOMAIN, NAME, DEVICEIP, MANUFACTURER, UPDATE_INTERVAL, UPDATE_INTERVAL_DEFAULT, DID, HEATER_DID, CHILLER_DID, STATUS, CONFIG, TYPE
 from .apex import Apex
 from .coordinator import ApexDataUpdateCoordinator
 
@@ -27,11 +27,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     user = entry.data[CONF_USERNAME]
     password = entry.data[CONF_PASSWORD]
     deviceip = entry.data[DEVICEIP]
-    if UPDATE_INTERVAL in entry.options:
-        update_interval = entry.options[UPDATE_INTERVAL]
-    else:
-        update_interval = UPDATE_INTERVAL_DEFAULT
-    logger.debug(update_interval)
+    update_interval = entry.options.get(UPDATE_INTERVAL, UPDATE_INTERVAL_DEFAULT)
+    logger.debug(f"Update interval: {update_interval}")
     for ar in entry.data:
         logger.debug(ar)
 
@@ -91,9 +88,10 @@ def set_dosing_rate(hass, service, coordinator):
 
 
 def set_temperature(hass, service, coordinator):
-    did = service.data.get(DID).strip()
+    heater_did = service.data.get(HEATER_DID, None).strip()
+    chiller_did = service.data.get(CHILLER_DID, None).strip()
     temperature = float(service.data.get("temperature"))
-    coordinator.apex.set_temperature(did, temperature)
+    coordinator.apex.set_temperature(heater_did, chiller_did, temperature)
 
 
 def refill_reservoir(hass, service, coordinator):

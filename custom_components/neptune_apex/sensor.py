@@ -2,9 +2,10 @@ import logging
 import re
 
 from homeassistant.helpers.entity import Entity
+from homeassistant.const import ATTR_UNIT_OF_MEASUREMENT
 
 from .apex_entity import ApexEntity
-from .const import DOMAIN, SENSORS, MEASUREMENTS, STATUS, DID, TYPE, CONFIG, INPUTS, OUTPUTS, OCONF, ICONF, STATE, ATTRIBUTES, DOS, DQD, IOTA, VARIABLE, VIRTUAL, CTYPE, ADVANCED, PROG
+from .const import DOMAIN, ICON, SENSORS, MEASUREMENTS, STATUS, DID, TYPE, CONFIG, INPUTS, OUTPUTS, OCONF, ICONF, STATE, ATTRIBUTES, DOS, DQD, IOTA, VARIABLE, VIRTUAL, CTYPE, ADVANCED, PROG
 
 logger = logging.getLogger(__name__)
 
@@ -96,14 +97,14 @@ class ApexSensor(ApexEntity, Entity):
                         if value["extra"]["range"] in MEASUREMENTS:
                             return MEASUREMENTS[value["extra"]["range"]]
         if self.sensor[TYPE] in SENSORS:
-            if "measurement" in SENSORS[self.sensor[TYPE]]:
-                return SENSORS[self.sensor[TYPE]]["measurement"]
+            if ATTR_UNIT_OF_MEASUREMENT in SENSORS[self.sensor[TYPE]]:
+                return SENSORS[self.sensor[TYPE]][ATTR_UNIT_OF_MEASUREMENT]
         return None
 
     @property
     def icon(self):
         if self.sensor[TYPE] in SENSORS:
-            return SENSORS[self.sensor[TYPE]]["icon"]
+            return SENSORS[self.sensor[TYPE]][ICON]
         else:
             logger.debug("missing icon: " + self.sensor[TYPE])
             return None

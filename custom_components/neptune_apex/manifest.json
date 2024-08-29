@@ -10,6 +10,6 @@
     "issue_tracker": "https://github.com/brettonw/neptune-apex/issues",
     "requirements": [],
     "ssdp": [],
-    "version": "2.0.0",
+    "version": "2.0.2",
     "zeroconf": [{"type": "_http._tcp.local.", "properties": {"hn": "*", "sn": "*", "if": "*", "os":  "*"}}]
 }
