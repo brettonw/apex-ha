@@ -1,9 +1,8 @@
 from enum import StrEnum
 from homeassistant.const import (ATTR_UNIT_OF_MEASUREMENT, UnitOfTemperature, UnitOfLength,
                                  UnitOfElectricPotential, UnitOfElectricCurrent, UnitOfPower, UnitOfVolume,
-                                 CONCENTRATION_PARTS_PER_MILLION, PERCENTAGE, DEVICE_CLASS_UNITS)
-
-from homeassistant.components.sensor import SensorDeviceClass
+                                 CONCENTRATION_PARTS_PER_MILLION, PERCENTAGE)
+from homeassistant.components.sensor import SensorDeviceClass, DEVICE_CLASS_UNITS
 
 
 class SensorDeviceClassExtra(SensorDeviceClass):
