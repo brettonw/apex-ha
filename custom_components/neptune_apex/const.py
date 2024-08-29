@@ -5,7 +5,7 @@ from homeassistant.const import (ATTR_UNIT_OF_MEASUREMENT, UnitOfTemperature, Un
 from homeassistant.components.sensor import SensorDeviceClass, DEVICE_CLASS_UNITS
 
 
-class SensorDeviceClassExtra(SensorDeviceClass):
+class SensorDeviceClassExtra(StrEnum):
     CONCENTRATION = "concentration"
     TOTAL_ALKALINITY = "total_alkalinity"
     SALINITY = "salinity"
