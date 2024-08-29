@@ -123,9 +123,11 @@ class Apex(object):
         return self.set_program(device_id, ADVANCED, code, False)
 
     def set_temperature(self, heater_device_id: str, chiller_device_id: str | None, temperature: float) -> Optional[dict]:
-        result = self.set_program(heater_device_id, HEATER, f"Fallback OFF\nIf Tmp < {temperature} Then ON\nIf Tmp > {temperature} Then OFF\n")
+        low_temperature = temperature - 0.1
+        high_temperature = temperature + 0.1
+        result = self.set_program(heater_device_id, HEATER, f"Fallback OFF\nIf Tmp < {low_temperature} Then ON\nIf Tmp > {temperature} Then OFF\n")
         if (result is not None) and (chiller_device_id is not None):
-            return self.set_program(chiller_device_id, CHILLER, f"Fallback OFF\nIf Tmp > {temperature} Then ON\nIf Tmp < {temperature} Then OFF\n")
+            return self.set_program(chiller_device_id, CHILLER, f"Fallback OFF\nIf Tmp > {high_temperature} Then ON\nIf Tmp < {temperature} Then OFF\n")
         return result
 
     def get_module(self, module_number: int, expected_hwtypes: Optional[list[str]] = None) -> Optional[dict]:
