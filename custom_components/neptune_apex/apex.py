@@ -41,7 +41,7 @@ class Apex(object):
             headers = {**DEFAULT_HEADERS}
             data = {"login": self.username, "password": self.password, "remember_me": False}
             url = f"http://{self.deviceip}/{REST}/login"
-            logging.debug(f"fetching url for auth ({url})")
+            logging.debug(f"fetch #{tries} of url for auth ({url})")
             r = requests.post(url, headers=headers, json=data)
             # logger.debug(r.request.body)
             # logger.debug(r.status_code)
@@ -49,10 +49,10 @@ class Apex(object):
 
             if r.status_code == 200:
                 self.sid = r.json()["connect.sid"]
+                logger.debug(f"SID: {self.sid}")
 
             # XXX does there need to be some sort of sleep here?
 
-        logger.debug(f"SID: {self.sid}")
         return self.sid is not None
 
     def try3(self, url_path: str, postdata: Optional[dict] = None) -> Optional[dict]:
