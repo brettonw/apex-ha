@@ -126,7 +126,7 @@ class Apex(object):
         low_temperature = temperature - 0.1
         high_temperature = temperature + 0.1
         result = self.set_program(heater_device_id, HEATER, f"Fallback OFF\nIf Tmp < {low_temperature} Then ON\nIf Tmp > {temperature} Then OFF\n")
-        if (result is not None) and (chiller_device_id is not None):
+        if chiller_device_id is not None:
             return self.set_program(chiller_device_id, CHILLER, f"Fallback OFF\nIf Tmp > {high_temperature} Then ON\nIf Tmp < {temperature} Then OFF\n")
         return result
 
