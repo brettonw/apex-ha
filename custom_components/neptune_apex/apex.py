@@ -123,6 +123,7 @@ class Apex(object):
         return self.set_program(device_id, ADVANCED, code, False)
 
     def set_temperature(self, heater_device_id: str, chiller_device_id: str | None, temperature: float) -> Optional[dict]:
+        temperature = round(temperature, 1)
         low_temperature = temperature - 0.1
         high_temperature = temperature + 0.1
         result = self.set_program(heater_device_id, HEATER, f"Fallback OFF\nIf Tmp < {low_temperature} Then ON\nIf Tmp > {temperature} Then OFF\n")
