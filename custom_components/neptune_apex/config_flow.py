@@ -4,7 +4,7 @@ from typing import Any
 import voluptuous as vol
 from homeassistant import config_entries, exceptions
 from homeassistant.config_entries import ConfigFlowResult
-from homeassistant.components.zeroconf import ZeroconfServiceInfo
+from homeassistant.helpers.service_info.zeroconf import ZeroconfServiceInfo
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import callback
 
